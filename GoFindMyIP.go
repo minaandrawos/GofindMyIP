@@ -32,6 +32,9 @@ func findMyIP(url, marker1 , marker2 string)(myIP string, err error){
 	for err == nil {
 		var line string
 		line, err = bufreader.ReadString('\n')
+		if(err != nil){
+			return
+		}
 		if(marker1=="" || marker2==""){
 			myIP = line
 			break
