@@ -28,6 +28,7 @@ func findMyIP(url, marker1 , marker2 string)(myIP string, err error){
 	if err!=nil{
 		return
 	}
+	defer r.Body.Close()
 	bufreader := bufio.NewReader(r.Body)
 	for err == nil {
 		var line string
@@ -46,6 +47,5 @@ func findMyIP(url, marker1 , marker2 string)(myIP string, err error){
 			break
 		}
 	}
-	r.Body.Close()
 	return
 }
