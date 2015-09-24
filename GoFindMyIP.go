@@ -3,25 +3,27 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"io/ioutil"
+	"encoding/json"
 	"strings"
 	"bufio"
 	"os"
 )
 
+type ipfiResponseRecord struct {
+	IP string `json:ip`
+}
+
 func main() {
-	ip,err := findMyIP("http://myexternalip.com/raw","","")
+	ip,err := findMyIPbyParsing("http://myexternalip.com/raw","","")
 	checkerror(err)
 	fmt.Println(" Your IP is: " + ip)
+	Useipfi()
+	UseipfiJson()
+
 }
 
-func checkerror(err error){
-	if(err!=nil){
-		fmt.Printf("err %s detected \n", err)
-		os.Exit(1)
-	}
-}
-
-func findMyIP(url, marker1 , marker2 string)(myIP string, err error){
+func findMyIPbyParsing(url, marker1 , marker2 string)(myIP string, err error){
 	var r *http.Response
 	myIP = ""
 	r , err = http.Get(url)
@@ -32,6 +34,7 @@ func findMyIP(url, marker1 , marker2 string)(myIP string, err error){
 	bufreader := bufio.NewReader(r.Body)
 	for err == nil {
 		var line string
+
 		line, err = bufreader.ReadString('\n')
 		if(err != nil){
 			return
@@ -48,4 +51,42 @@ func findMyIP(url, marker1 , marker2 string)(myIP string, err error){
 		}
 	}
 	return
+}
+
+func UseipfiJson(){
+
+	//req,err := http.NewRequest("Get","https://api.ipify.org?format=json" ,nil)
+	//checkerror(err)
+
+	//client := &http.Client{}
+	resp, err := http.Get("https://api.ipify.org?format=json")//client.Do(req)
+	checkerror(err)
+	defer resp.Body.Close()
+
+	myrecord:= new(ipfiResponseRecord)
+	err = json.NewDecoder(resp.Body).Decode(&myrecord)
+	checkerror(err)
+	fmt.Printf(" My IP Address via useipfi JSON is: %v\n", *myrecord)
+
+}
+
+func Useipfi(){
+
+	resp,err := http.Get("https://api.ipify.org")
+	checkerror(err)
+	defer resp.Body.Close()
+
+	content, err := ioutil.ReadAll(resp.Body)
+	checkerror(err)
+
+
+	fmt.Printf(" My IP Address via useipfi is: %s\n", content)
+
+}
+
+func checkerror(err error){
+	if(err!=nil){
+		fmt.Printf("err %s detected \n", err)
+		os.Exit(1)
+	}
 }
